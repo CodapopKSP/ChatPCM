@@ -1,0 +1,9 @@
+.vs/
+models/*
+!models/
+test.txt
+dataset.txt
+checkpoint/*
+!checkpoint/
+training_data/*
+!training_data
