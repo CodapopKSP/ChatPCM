@@ -1,0 +1,21 @@
+//Run on a based_comments_complete MongoDB collection. The collection is created by the "database.ts" script
+//Save the result of this query as "parents.json", then run the "parse_json.ts"
+use('historia');
+
+const pipeline = [{
+    $match: {  //Match comments with a defined parent
+        parent: {
+            $ne: null
+        }
+    }
+}, {
+    $project: { //Pilled comment's parent -> parent. -> Pilled comment -> reply
+        _id: 0,
+        comment: '$parent.body',
+        comment_author: '$parent.author',
+        reply: '$body',
+        reply_author: '$author'
+    }
+}];
+
+db.based_comments_complete.aggregate(pipeline);
