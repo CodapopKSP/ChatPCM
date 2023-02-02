@@ -1,0 +1,20 @@
+//Run on a based_comments_complete MongoDB collection. The collection is created by the "database.ts" script
+//Save the result of this query as "children.json", then run the "parse_json.ts"
+use('historia');
+
+const pipeline = [{
+ $unwind: { //Expand array of children (a comment might have more than one child)
+  path: '$children',
+  preserveNullAndEmptyArrays: true
+ }
+}, {
+ $project: {//Pilled comment -> comment. Reply-> reply
+  _id: 0,
+  comment: '$body',
+  comment_author: '$author',
+  reply: '$children.body',
+  reply_author: '$children.author'
+ }
+}];
+
+db.based_comments_complete.aggregate(pipeline);
