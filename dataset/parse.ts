@@ -1,6 +1,6 @@
 //Read two JSON files containing arrays of comments and parse their contents into a .txt file
 //Run with Deno
-import emojiStrip from "npm:emoji-strip"
+// import emojiStrip from "npm:emoji-strip"
 import he from "npm:he"
 
 interface Comment {
@@ -8,6 +8,15 @@ interface Comment {
     comment: string,
     reply_author: string,
     reply: string,
+}
+
+class CommentOut {
+    comment: string;
+    reply: string;
+    constructor(comment: string, reply: string) {
+        this.comment = comment;
+        this.reply = reply;
+    }
 }
 
 const PARENTS = './datasets/parents.json';
@@ -24,11 +33,14 @@ async function readFile(filePath: string) {
 }
 
 //Appends a string to a file
-async function writeFile(filePath: string, commentSequence: string) {
+async function writeFile(filePath: string, commentSequence: CommentOut[]) {
+    const map = commentSequence.map(obj => {
+        return { [obj.comment as string]: obj.reply }
+    });
+    const stringified = JSON.stringify(map);
+
     try {
-        await Deno.writeTextFile(filePath, commentSequence, {
-            append: true,
-        });
+        await Deno.writeTextFile(filePath, stringified);
     } catch (e) {
         console.log(e.message);
     }
@@ -40,26 +52,24 @@ async function writeFile(filePath: string, commentSequence: string) {
     Reply_author:
     Reply_body
 */
-function stringifyComments(comment: Comment) {
-    let out: string;
+function cleanComments(comment: Comment) {
+    let out;
 
     try {
         if (isNull(comment.comment)) { //Only save the reply
-            out = `///////////////\n${purge(comment.reply)}\n`;
+            out = new CommentOut('', purge(comment.reply));
 
         } else if (isNull(comment.reply)) {//Only save the parent
-            out = `///////////////\n${purge(comment.comment)}\n`;
+            out = new CommentOut(purge(comment.comment), '');
 
         } else { //Save both the parent and the reply
-            out = `///////////////\n${purge(comment.comment)}\n===============\n${purge(comment.reply)}\n`;
-
+            out = new CommentOut(purge(comment.comment), purge(comment.reply));
 
         }
-
         return out;
     } catch (e) {
         console.log(e.message)
-        return "";
+        return new CommentOut('', '');
     }
 }
 
@@ -75,20 +85,16 @@ function isNull(str: string) {
 
 //Remove all line breaks from a string (they break our format), unescape escape sequences
 function purge(str: string) {
-    // deno-lint-ignore no-invalid-regexp
-    const emojiRE = /\p{EPres}|\p{ExtPict}/gu;
-    const brailleRE = /\p{Script=Braille}/ug;
+    const whitelistRE = /[A-Za-z0-9À-ÿ!@#$%^&*()_+-={}[\]:";'<>,.?\/\\ (\r\n|\r|\n)]+/g;
 
     str = he.decode(str);   //Remove HTML artifacts
-    str = str.replace(emojiRE, ''); //Remove emojis (first pass, toughest)
-    str = str.replace(brailleRE, '•'); //Remove braille dots
-    str = str.replace(/\n\n/gm, '\n').trim();  //Remove new lines
-    return emojiStrip(str);//Remove emojis (second pass)
+    const res = (str.match(whitelistRE) || []).join('');
+    return res;
 }
 
 //Write a unique filename
 function DESTINATION(fileNum: number) {
-    return `./output/dataset${fileNum}.txt`;
+    return `./output/dataset${fileNum}.json`;
 }
 
 
@@ -101,15 +107,17 @@ async function parse(sourcePath: string, fileNum: number) {
     console.log('Iterating file\n');
     let i = 0;
     const total = commentsArr.length;
+    let arr: CommentOut[] = [];
 
     for (const comment of commentsArr) {
         try {
-            if (i % TOKEN === 0) {
-                fileNum++;  //Create a new file every TOKEN processed comment pairs
+            if (i % TOKEN === 0 && i != 0) {//Create a new file every TOKEN processed comment pairs
+                fileNum++;
+                await writeFile(DESTINATION(fileNum), arr);
+                arr = [];
                 console.log('\nGenerating new file:', fileNum, '\n');
             }
-
-            await writeFile(DESTINATION(fileNum), stringifyComments(comment));
+            arr.push(cleanComments(comment));
             i++;
             console.log(`Comment inserted - ${(i / total * 100).toFixed(2)}%`);
         } catch (e) {
