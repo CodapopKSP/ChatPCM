@@ -9,7 +9,7 @@ This collection of scripts aims at creating a dataset of multiple .json files of
     "reply_author": "string"
 }
 ```
-Users should first select their target comments with some kind of criteria. We used the comments that received the most pills in the DataBased, the databse which powers [basedcount_bot](https://github.com/CodapopKSP/basedcount_bot) but other datasets could work equally fine. These comments will be the most prevalent in the resulting training dataset so pick them with care. This guide won't cover the creation of such a sample. It should look like this:
+Users should first select their target comments with some kind of criteria. We used the comments that received the most pills in the DataBased, the database which powers [basedcount_bot](https://github.com/CodapopKSP/basedcount_bot) but other datasets could work equally fine. These comments will be the most prevalent in the resulting training dataset so pick them with care. This guide won't cover the creation of such a sample. It should look like this:
 ```json
 {
     "body": "string",
