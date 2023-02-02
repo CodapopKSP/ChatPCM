@@ -27,7 +27,7 @@ An **archive** of Reddit comments. For this dataset we used a dump spanning from
 
 Such archive should be saved on a **MongoDB Server** instance running on the same machine as the script.
 
-The TypeScript files "database.ts" and "parse.ts" should be executed with **Deno**.
+The TypeScript files "database.ts" and "parse.ts" should be executed with **[Deno](https://deno.land)**.
 
 ## Steps
 On MongoDB create a database named "historia". Save the archive of comments in a collection named "comments_pushshift" and the starting sample in another collection named "based_comments".
