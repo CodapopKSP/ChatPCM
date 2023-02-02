@@ -7,3 +7,5 @@ checkpoint/*
 !checkpoint/
 training_data/*
 !training_data
+samples/*
+!samples/
