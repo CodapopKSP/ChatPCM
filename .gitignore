@@ -9,3 +9,4 @@ training_data/*
 !training_data
 samples/*
 !samples/
+output.json
