@@ -10,5 +10,11 @@ training_data/*
 samples/*
 !samples/
 output.json
+<<<<<<< HEAD
 deep_based/*
 deep_based!
+=======
+.vscode/
+.venv/
+*/comments.json
+>>>>>>> 529aad5ec3bb89b2ff340ad7a3dce9c2997a23da

@@ -1,6 +1,5 @@
 import gpt_2_simple as gpt2
 import os
-import requests
 
 # Download or verify model
 model_name = "124M"

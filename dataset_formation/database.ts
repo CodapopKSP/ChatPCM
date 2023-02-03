@@ -1,5 +1,6 @@
 //Fetch from Historia the names, children and parents of the most pilled comments. Used to train Deep Based
 //Run with Deno
+
 import { MongoClient } from 'npm:mongodb'
 // import { MongoClient, ObjectId } from 'npm:mongodb'  //Replace with this if _id is included
 
@@ -14,7 +15,7 @@ interface BasedComment {
     // permalink: string   //This is useless
 }
 
-interface CompleteBasedComment extends BasedComment {
+export interface CompleteBasedComment extends BasedComment {
     author: string
     author_flair_text: string
     parent: FetchedComment | null
@@ -34,7 +35,8 @@ interface self {
     author_flair_text: string
 }
 
-const uri = 'mongodb://localhost:27017';
+// 'mongodb://localhost:27017'
+const uri = Deno.env.get("MONGO_ENV")!;
 const client = new MongoClient(uri);
 
 await client.connect();
