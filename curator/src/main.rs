@@ -2,7 +2,8 @@ use std::{env, path::Path};
 
 mod minerva;
 
-fn main() {
+#[tokio::main]
+async fn main() {
     let args: Vec<String> = env::args().collect();
     let import_target = args.get(1).expect("Please provide an argument pointing to a comments file.");
     let import_path = Path::new(import_target);
