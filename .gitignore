@@ -10,3 +10,6 @@ training_data/*
 samples/*
 !samples/
 output.json
+.vscode/
+.venv/
+*/comments.json

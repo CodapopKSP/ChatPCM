@@ -1,0 +1,1 @@
+/home/tristan/Development/BasedCount/ChatPCM/curator/target/debug/curator: /home/tristan/Development/BasedCount/ChatPCM/curator/src/main.rs /home/tristan/Development/BasedCount/ChatPCM/curator/src/minerva/comment.rs /home/tristan/Development/BasedCount/ChatPCM/curator/src/minerva/mod.rs
