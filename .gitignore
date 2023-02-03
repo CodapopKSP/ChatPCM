@@ -10,3 +10,5 @@ training_data/*
 samples/*
 !samples/
 output.json
+deep_based/*
+deep_based!
