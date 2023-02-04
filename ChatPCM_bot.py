@@ -8,7 +8,7 @@ load_dotenv()
 numReplyCandidates = 3
 maxReplyLength = 1000
 checkpoint_dir = 'deep_based'
-run_name = 'Key_Value0_1_plus3'
+run_name = 'Key_Value0_1_3x500_0_1x5k'
 delimiter = '"}'
 
 # Connect to Reddit
@@ -40,6 +40,7 @@ def generateReplyList(inputComment):
     # Generate a list of replies
     
     reply_candidates_raw = []
+    reply_candidates_raw += generateReply(0.5, inputComment)
     reply_candidates_raw += generateReply(0.7, inputComment)
     reply_candidates_raw += generateReply(0.9, inputComment)
     reply_candidates = []
@@ -54,11 +55,24 @@ def generateReplyList(inputComment):
         except:
             pass
 
+    # Clean comment info
+    parent = 'SUBMISSION'
+    comment = ''
+    delim = '" }, {"'
+    if delim in inputComment:
+        parent_and_comment = inputComment.split(delim)
+        parent = parent_and_comment[0]
+        comment = parent_and_comment[1]
+    else:
+        comment = inputComment.replace('{"', '')
+        comment = comment.replace('":"', '')
+
     # Print organized list
-    print("=====================")
-    print(f"Comment: {inputComment}\n")
+    print("\n=====================")
+    print(f"PARENT: {parent}\n\n")
+    print(f"COMMENT: {comment}\n\n")
     for reply in reply_candidates:
-        print(f"Reply:   {reply}\n")
+        print(f"REPLY: {reply}\n")
 
 # Go through comments
 def readComments():
@@ -70,7 +84,7 @@ def readComments():
                 parent = str(comment.parent())
                 parentComment = reddit.comment(id=parent)
                 parentText = parentComment.body
-                input = parentText + ' }, ' + input
+                input = parentText + '" }, ' + input
             except:
                 pass
             generateReplyList(input)

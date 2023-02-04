@@ -6,7 +6,7 @@ maxReplyLength = 300
 
 # Choose which model you are using
 checkpoint_dir = 'deep_based'
-run_name = 'Key_Value0_1_plus3'
+run_name = 'Key_Value0_1'
 
 # String manipulation to allow for parsing of data
 delimiter = '"}'
