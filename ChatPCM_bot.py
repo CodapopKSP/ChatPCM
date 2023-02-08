@@ -8,7 +8,7 @@ load_dotenv()
 numReplyCandidates = 3
 maxReplyLength = 1000
 checkpoint_dir = 'deep_based'
-run_name = 'Key_Value0_1_3x500_0_1x5k'
+run_name = 'based100k_pruned_v2-13k'
 delimiter = '"}'
 
 # Connect to Reddit
