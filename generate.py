@@ -1,16 +1,16 @@
 import gpt_2_simple as gpt2
 
-inputComment = '''Just reverse the funny colors and have MSNBC instead of Fox News and it would be true for the Trump admin.'''
+inputComment = '''input text'''
 numReplyCandidates = 3
 maxReplyLength = 300
 
 # Choose which model you are using
 checkpoint_dir = 'deep_based'
-run_name = 'Key_Value0_1'
+run_name = 'based100k_flairs'
 
 # String manipulation to allow for parsing of data
 delimiter = '"}'
-comment_with_parsers = '[{"' + inputComment + '":"'
+comment_with_parsers = '{|Left|"' + inputComment + '"}\n{|AuthRight|"'
 
 # Start gpt2
 sess = gpt2.start_tf_sess()
@@ -31,8 +31,8 @@ def generateReply(temp, comment):
 
 # Generate a list of replies
 reply_candidates_raw = []
-reply_candidates_raw += generateReply(0.7, comment_with_parsers)
-reply_candidates_raw += generateReply(0.9, comment_with_parsers)
+reply_candidates_raw += generateReply(0.0, comment_with_parsers)
+reply_candidates_raw += generateReply(0.1, comment_with_parsers)
 reply_candidates = []
 
 # Clean the replies and generate a list of pure reply text
@@ -40,7 +40,7 @@ for reply in reply_candidates_raw:
     try:
         if delimiter in reply:
             reply_parts = reply.split(delimiter)
-            reply = reply_parts[0].replace(comment_with_parsers, '')
+            reply = reply_parts[1].replace(comment_with_parsers, '')
             reply_candidates.append(reply)
     except:
         pass

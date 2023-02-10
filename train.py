@@ -4,14 +4,16 @@ import gpt_2_simple as gpt2
 # Download or verify model
 model_name = "124M"
 checkpoint_dir = 'deep_based'
-run_name = 'based100k_pruned_v2-high_LR2'
+run_name = 'based100k_flairs'
 
 if not os.path.isdir(os.path.join("models", model_name)):
 	print(f"Downloading {model_name} model...")
 	gpt2.download_gpt2(model_name=model_name)
 
 # Train model with dataset and save a checkpoint
-file_name = "training_data/dataset_based_100k_pruned_v2/dataset8.json"
+dataset_folder = "dataset_based_100k_pruned_v3_unstructured_flairs"
+dataset_file = "dataset8.txt"
+file_name = "training_data/" + dataset_folder + "/" + dataset_file
 sess = gpt2.start_tf_sess()
 gpt2.finetune(sess,
               file_name,
