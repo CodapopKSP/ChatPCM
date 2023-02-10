@@ -1,14 +1,23 @@
 import gpt_2_simple as gpt2
 import os
 
+# Get absolute path to resource, works for dev and for PyInstaller - I got this from StackOverflow but it works
+def resource_path(relative_path):
+    try:
+        # PyInstaller creates a temp folder and stores path in _MEIPASS
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.abspath(".")
+
+    return os.path.join(base_path, relative_path)
+
 numReplyCandidates = 3
 maxReplyLength = 300
 
 # Choose which model you are using
-checkpoint_dir = 'deep_based'
+checkpoint_dir = resource_path('deep_based')
+# checkpoint_dir = 'deep_based'
 run_name = 'based100k_flairs'
-
-print('ChatPCM - "Deep Based" starting up...\n')
 
 # Start gpt2
 sess = gpt2.start_tf_sess()

@@ -16,3 +16,5 @@ output.json
 */comments.json
 deep_based/*
 !deep_based/
+/dist
+/build
