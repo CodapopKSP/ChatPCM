@@ -3,6 +3,8 @@ import re
 import gpt_2_simple as gpt2
 from dotenv import load_dotenv
 from os import getenv
+import schedule
+import time
 
 
 numReplyCandidates = 3
@@ -17,47 +19,91 @@ def main():
     load_dotenv()
 
     checkpoint_dir = 'deep_based'
-    run_name = 'based100k_flairs - 72k'
+    # run_name = 'based100k_flairs - 72k'
+    run_name = 'based100k_flairs - 90k'
 
     # Connect to Reddit
-    reddit = praw.Reddit(client_id=getenv("CLIENT_ID"), client_secret=getenv("CLIENT_SECRET"),
-                         user_agent=getenv("USER_AGENT"), username=getenv("USER_NAME"), password=getenv("PASSWORD"))
+    reddit = praw.Reddit(client_id=getenv("CLIENT_ID_"), client_secret=getenv("CLIENT_SECRET_"),
+                         user_agent=getenv("USER_AGENT_"), username=getenv("USER_NAME_"), password=getenv("PASSWORD_"))
 
     subreddit = reddit.subreddit('PoliticalCompassMemes')
 
     sess = gpt2.start_tf_sess()
     gpt2.load_gpt2(sess, checkpoint_dir=checkpoint_dir, run_name=run_name)
 
+    schedule.every(20).minutes.do(reply_inbox, reddit=reddit,
+                                 sess=sess, checkpoint_dir=checkpoint_dir, run_name=run_name)
+
     print()
 
     while True:
+        schedule.run_pending()
 
         prefix = ''
         try:
             target = get_comment(subreddit=subreddit)
-            parent = get_parent(reddit=reddit, comment=target)
-            if parent != None:
-                prefix = '{|'+get_flair(parent.author_flair_template_id) + \
-                    '|'+parent.body+'}\n'
-            prefix += '{|'+get_flair(target.author_flair_template_id) + \
-                '|'+target.body+'}\n'
-            prefix += '{|'+flair+'|'
-        except:
+            reply = create_reply(target, reddit, sess,
+                                 checkpoint_dir, run_name)
+
+            if reply != '':
+                replied.append(target.id)
+                try:
+                    out = target.reply(reply)
+
+                    print('New: https://reddit.com'+out.permalink)
+                except Exception as e:   
+                    print(str(e))        
+                    pass
+
+        except Exception as e:   
+            print(str(e))        
             pass
 
-        reply_raw = generate_reply(
-            sess, checkpoint_dir, run_name, comment=prefix)
 
-        reply = censor_words(reply_raw)
+# Fetch a comment's parent and generate a reply to it
+def create_reply(target, reddit, sess, checkpoint_dir, run_name):
+    prefix = ''
+    try:
+        parent = get_parent(reddit=reddit, comment=target)
+        if parent != None:
+            prefix = '{|'+get_flair(parent) + \
+                '|'+parent.body+'}\n'
+        prefix += '{|'+get_flair(target) + \
+            '|'+target.body+'}\n'
+        prefix += '{|'+flair+'|'
+    except Exception as e:   
+        print(str(e))        
+        pass
 
-        if reply != '':
-            replied.append(target.id)
-            out = reddit.comment(id='t1_j9c2gjb').reply(reply)
+    reply_raw = generate_reply(sess, checkpoint_dir, run_name, comment=prefix)
+    return censor_words(reply_raw)
 
-            print('SOURCE: https://reddit.com'+target.permalink)
-            print('ANSWER: https://reddit.com'+out.permalink)
-            print()
 
+# Generate an answer to each unread reply
+def reply_inbox(reddit, sess, checkpoint_dir, run_name):
+    # Fetch any unread message
+    unread_messages = reddit.inbox.unread()
+    # Filter the comments
+    unread_replies = [message for message in unread_messages if isinstance(
+        message, praw.models.Comment)]
+
+    for reply in unread_replies:
+        try:
+            generated_reply = create_reply(
+                reply, reddit, sess, checkpoint_dir, run_name)
+
+            if generated_reply != '':
+                replied.append(reply.id)
+                try:
+                    out = reply.reply(generated_reply)
+                    print('Reply: https://reddit.com'+out.permalink)
+                except Exception as e:   
+                    print(str(e))        
+                    pass
+            reply.mark_read()
+        except Exception as e:   
+            print(str(e))        
+            pass
 
 
 # Return the longest out of WINDOW comments
@@ -88,7 +134,8 @@ def get_comment(subreddit):
 
                 if accepted >= window:
                     return target
-            except:
+            except Exception as e:   
+                print(str(e))        
                 pass
 
 
@@ -101,12 +148,19 @@ def get_parent(reddit, comment):
     try:
         # If parent is a comment, try to fetch it and return it
         return reddit.comment(id=comment.parent_id)
-    except:
+    except Exception as e:   
+        print(str(e))        
         return None
 
 
 # Return a flair in the flairchange_bot format from a Reddit flair ID
-def get_flair(flair_id):
+def get_flair(comment):
+    flair_id = None
+    if 'author_flair_template_id' in vars(comment):
+        flair_id = comment.author_flair_template_id
+    else:
+        return 'Unflaired'
+
     match flair_id:
         case "349ce882-e94e-11e9-bbc4-0e871e36a27e":
             return "Centrist"
@@ -132,6 +186,7 @@ def get_flair(flair_id):
             return "LibRight"
         case None:
             return "Unflaired"
+    return "Unflaired"
 
 
 # Generate a reply
@@ -150,7 +205,8 @@ def generate_reply(sess, checkpoint_dir, run_name, comment):
             candidate = candidate[:candidate.index(delimiter)]
             candidate = candidate[1:-1]  # Remove wrapping commas
             reply_candidates.append(candidate)
-        except:
+        except Exception as e:   
+            print(str(e))        
             pass
 
     reply = ''
@@ -162,9 +218,14 @@ def generate_reply(sess, checkpoint_dir, run_name, comment):
 
     output = ''
     try:
-        match = re.search(r"{\|[a-zA-Z]+\|(.+)", reply, re.MULTILINE)
-        output = match.group(1)
-    except:
+        # If the answer isn't clean yet, do another extraction pass
+        if ('{' in reply) or ('}' in reply) or ('|' in reply):
+            match = re.search(r"{\|[a-zA-Z]+\|(.+)", reply, re.MULTILINE)
+            output = match.group(1)
+        else:
+            output = reply
+    except Exception as e:   
+        print(str(e))        
         output = reply  # Improve by removing everything before the second '|' and the last '"'
 
     return output
