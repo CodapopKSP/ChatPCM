@@ -19,8 +19,8 @@ def main():
     load_dotenv()
 
     checkpoint_dir = 'deep_based'
-    # run_name = 'based100k_flairs - 72k'
-    run_name = 'based100k_flairs - 90k'
+    run_name = 'based100k_flairs - 72k'
+    # run_name = 'based100k_flairs - 90k'
 
     # Connect to Reddit
     reddit = praw.Reddit(client_id=getenv("CLIENT_ID_"), client_secret=getenv("CLIENT_SECRET_"),
