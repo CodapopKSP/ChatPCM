@@ -111,7 +111,7 @@ def get_comment(subreddit):
     # Function for client side validation. Clients should modify this according to their preferences
     def validate_comment(comment):
         # Avoid bot comments
-        if comment.author in ["basedcount_bot", "flairchange_bot", "flair-checking-bot"]:
+        if comment.author in ["basedcount_bot", "flairchange_bot", "flair-checking-bot", "StalinIsBallin_"]:
             return False
         if comment.id in replied:   # Avoid double answers
             return False
