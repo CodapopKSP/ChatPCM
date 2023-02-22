@@ -11,7 +11,7 @@ numReplyCandidates = 3
 maxReplyLength = 1000
 temp = 0.1
 window = 10  # Number of comments to pick from
-flair = 'AuthLeft'  # Flair to generate as
+flair = 'Centrist'  # Flair to generate as
 replied = []    # Array of reddit ids of comments the bot has already replied to
 replied_users = {} # Dict of users the bot has already replied to, paired with the number of responses it has generated {user: reply#}
 
