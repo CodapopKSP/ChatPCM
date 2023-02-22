@@ -3,7 +3,7 @@ import os
 
 numReplyCandidates = 3
 maxReplyLength = 300
-temp = 0.7
+temp = 0.1
 
 prompts = [
     "{|AuthRight|He was a good person, and it’s hard for a good person to be a good president}\n{|Centrist|It's hard for a good person to even become elected to assitant deputy library adjunct administrator.}",
@@ -18,8 +18,7 @@ def main():
     # Choose which model you are using
     checkpoint_dir = resource_path('deep_based')
 
-    models = ["based100k_flairs - 90k v2", "based100k_flairs - 90k v1.5",
-              "based100k_flairs - 72k",  "based100k_flairs - 45k"]
+    models = ["based100k_flairs - 90k", "based100k_flairs - 72k"]
 
     run_name = models[0]
     print(run_name)
