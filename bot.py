@@ -10,9 +10,10 @@ import time
 numReplyCandidates = 3
 maxReplyLength = 1000
 temp = 0.1
-window = 20  # Number of comments to pick from
+window = 10  # Number of comments to pick from
 flair = 'AuthLeft'  # Flair to generate as
 replied = []    # Array of reddit ids of comments the bot has already replied to
+replied_users = {} # Dict of users the bot has already replied to, paired with the number of responses it has generated {user: reply#}
 
 
 def main():
@@ -23,8 +24,8 @@ def main():
     # run_name = 'based100k_flairs - 90k'
 
     # Connect to Reddit
-    reddit = praw.Reddit(client_id=getenv("CLIENT_ID_"), client_secret=getenv("CLIENT_SECRET_"),
-                         user_agent=getenv("USER_AGENT_"), username=getenv("USER_NAME_"), password=getenv("PASSWORD_"))
+    reddit = praw.Reddit(client_id=getenv("CLIENT_ID"), client_secret=getenv("CLIENT_SECRET"),
+                         user_agent=getenv("USER_AGENT"), username=getenv("USER_NAME"), password=getenv("PASSWORD"))
 
     subreddit = reddit.subreddit('PoliticalCompassMemes')
 
@@ -81,6 +82,15 @@ def create_reply(target, reddit, sess, checkpoint_dir, run_name):
 
 # Generate an answer to each unread reply
 def reply_inbox(reddit, sess, checkpoint_dir, run_name):
+    # Returns True with these probabilities per num:  0: 100%, 1: 90%, 2: 75%, 3: 40%, 4: 0%
+    def quadratic_random_reply(num):
+        try:
+            if randrange(15)-(num ** 2) >= 0:
+                return True
+            return False
+        except:
+            return False
+
     # Fetch any unread message
     unread_messages = reddit.inbox.unread()
     # Filter the comments
@@ -88,22 +98,27 @@ def reply_inbox(reddit, sess, checkpoint_dir, run_name):
         message, praw.models.Comment)]
 
     for reply in unread_replies:
-        try:
-            generated_reply = create_reply(
-                reply, reddit, sess, checkpoint_dir, run_name)
+        if reply.author not in replied_users.values():
+            replied_users[reply.author] = 0
+        
+        if quadratic_random_reply(replied_users[reply.author]):
+            try:
+                generated_reply = create_reply(
+                    reply, reddit, sess, checkpoint_dir, run_name)
 
-            if generated_reply != '':
-                replied.append(reply.id)
-                try:
-                    out = reply.reply(generated_reply)
-                    print('Reply: https://reddit.com'+out.permalink)
-                except Exception as e:   
-                    print(str(e))        
-                    pass
-            reply.mark_read()
-        except Exception as e:   
-            print(str(e))        
-            pass
+                if generated_reply != '':
+                    replied.append(reply.id)
+                    try:
+                        out = reply.reply(generated_reply)
+                        print('Reply: https://reddit.com'+out.permalink)
+                    except Exception as e:   
+                        print(str(e))        
+                        pass
+            except Exception as e:   
+                print(str(e))        
+                pass
+
+        reply.mark_read()
 
 
 # Return the longest out of WINDOW comments
