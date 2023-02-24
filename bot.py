@@ -14,7 +14,8 @@ window = 10  # Number of comments to pick from
 flair = 'Centrist'  # Flair to generate as
 replied = []    # Array of reddit ids of comments the bot has already replied to
 replied_users = {} # Dict of users the bot has already replied to, paired with the number of responses it has generated {user: reply#}
-
+submission_id='' # Target submission under which to post. Remove once bot is released unrestricted
+footer = "\n\n^(I'm a bot running a GPT-2 model created by the BasedCount team using PCM comments as training data. If you don't like anything I say, just remember who I was trained off of.)"
 
 def main():
     load_dotenv()
@@ -49,7 +50,7 @@ def main():
             if reply != '':
                 replied.append(target.id)
                 try:
-                    out = target.reply(reply)
+                    out = target.reply(reply+footer)
 
                     print('New: https://reddit.com'+out.permalink)
                 except Exception as e:   
@@ -109,7 +110,7 @@ def reply_inbox(reddit, sess, checkpoint_dir, run_name):
                 if generated_reply != '':
                     replied.append(reply.id)
                     try:
-                        out = reply.reply(generated_reply)
+                        out = reply.reply(generated_reply+footer)
                         print('Reply: https://reddit.com'+out.permalink)
                     except Exception as e:   
                         print(str(e))        
@@ -137,21 +138,23 @@ def get_comment(subreddit):
     accepted = 0
 
     for comment in subreddit.stream.comments():
-        # Match WINDOW valid comments
-        if validate_comment(comment):
-            try:
-                # Return the longest of them
-                if len(comment.body) > len(target_body):
-                    target = comment
-                    target_body = comment.body
+        # Only listen to comments posted under the target submission
+        if comment.submission.id == submission_id:
+            # Match WINDOW valid comments
+            if validate_comment(comment):
+                try:
+                    # Return the longest of them
+                    if len(comment.body) > len(target_body):
+                        target = comment
+                        target_body = comment.body
 
-                accepted += 1
+                    accepted += 1
 
-                if accepted >= window:
-                    return target
-            except Exception as e:   
-                print(str(e))        
-                pass
+                    if accepted >= window:
+                        return target
+                except Exception as e:   
+                    print(str(e))        
+                    pass
 
 
 # Return a comment's parent comment or None
