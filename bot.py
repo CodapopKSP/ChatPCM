@@ -261,7 +261,7 @@ def censor_words(text):
     # Define the function to replace matched text
     def repl_func(match):
         word = match.group(0)
-        return word[0] + '*'*(len(word)-1)
+        return '*'*len(word)
 
     # Censors the R slur in the given text and replaces it with "redditor" and "reddited".
     def censor_r_slur(text):
