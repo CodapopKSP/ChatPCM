@@ -10,12 +10,15 @@ import time
 numReplyCandidates = 3
 maxReplyLength = 1000
 temp = 0.1
-window = 10  # Number of comments to pick from
+window = 1  # Number of comments to pick from
 flair = 'Centrist'  # Flair to generate as
 replied = []    # Array of reddit ids of comments the bot has already replied to
 replied_users = {} # Dict of users the bot has already replied to, paired with the number of responses it has generated {user: reply#}
 submission_id='' # Target submission under which to post. Remove once bot is released unrestricted
 footer = "\n\n^(I'm a bot running a GPT-2 model created by the BasedCount team using PCM comments as training data. If you don't like anything I say, just remember who I was trained off of.)"
+
+MAX_TURN = 2 # number of clients running concurrently
+CLIENT_TURN = 0 # when should this client post? this should always be lower than MAX_TURN
 
 def main():
     load_dotenv()
@@ -126,7 +129,11 @@ def reply_inbox(reddit, sess, checkpoint_dir, run_name):
 def get_comment(subreddit):
     # Function for client side validation. Clients should modify this according to their preferences
     def validate_comment(comment):
-        # Avoid bot comments
+        print(comment.created_utc)
+        # Only post if it's your turn, I.E. COMMENT_TIMESTAMP % MAX_TURN = CLIENT_TURN 
+        if not comment.created_utc % MAX_TURN == CLIENT_TURN:
+            return False
+       # Avoid bot comments
         if comment.author in ["basedcount_bot", "flairchange_bot", "flair-checking-bot", "ChadGPT_bot"]:
             return False
         if comment.id in replied:   # Avoid double answers
